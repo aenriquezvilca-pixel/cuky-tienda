@@ -1,10 +1,11 @@
 import { useState } from "react";
 import Logo from "@/components/Logo";
-import { enlaceWhatsApp } from "@/config";
+import { CODIGO_PROMO, enlaceWhatsApp } from "@/config";
 
 const ENLACES = [
   { texto: "Inicio", href: "#inicio" },
   { texto: "Catálogo", href: "#catalogo" },
+  { texto: "Ofertas", href: "#ofertas" },
   { texto: "Pedidos", href: "#pedidos" },
   { texto: "Nosotros", href: "#nosotros" },
   { texto: "Contacto", href: "#contacto" },
@@ -16,19 +17,20 @@ export default function Header() {
 
   return (
     <>
-      {/* Barra superior */}
-      <div className="bg-cacao px-4 py-2 text-center text-xs font-semibold tracking-wide text-crema">
-        Pídelo y disfruta. ¡Te lo mereces! <span className="mx-2 text-pink-300">•</span>
+      {/* Barra superior con la promoción */}
+      <div className="bg-gradient-to-r from-frambuesa-oscuro via-frambuesa to-rose-500 px-4 py-2 text-center text-xs font-semibold tracking-wide text-white">
+        🎂 Primera compra con <b className="rounded bg-white/20 px-2 py-0.5">{CODIGO_PROMO}</b> y 10% de descuento
+        <span className="mx-3 hidden text-pink-200 sm:inline">•</span>
         <span className="hidden sm:inline">Delivery y recojo en tienda</span>
       </div>
 
-      <header className="sticky top-0 z-50 bg-white/95 shadow-sm backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-rosado bg-white/90 shadow-sm backdrop-blur-lg">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
           <a href="#inicio" aria-label="Cuky, ir al inicio">
             <Logo />
           </a>
 
-          <nav className="hidden items-center gap-7 text-[13px] font-bold uppercase tracking-widest text-cacao md:flex">
+          <nav className="hidden items-center gap-6 text-[13px] font-bold uppercase tracking-widest text-cacao md:flex">
             {ENLACES.map((e) => (
               <a
                 key={e.href}
@@ -45,7 +47,7 @@ export default function Header() {
               href={whatsapp}
               target="_blank"
               rel="noreferrer"
-              className="hidden items-center gap-2 rounded-full bg-[#25a244] px-5 py-2.5 text-sm font-bold text-white shadow-md transition hover:bg-[#1e8a39] sm:inline-flex"
+              className="hidden items-center gap-2 rounded-full bg-gradient-to-r from-frambuesa to-rose-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-frambuesa/30 transition hover:-translate-y-0.5 hover:shadow-lg sm:inline-flex"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 12a8 8 0 0 1-11.7 7.1L4 20l.9-4.2A8 8 0 1 1 20 12Z" />
@@ -86,7 +88,7 @@ export default function Header() {
                   href={whatsapp}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 block rounded-full bg-[#25a244] px-4 py-3 text-center text-white"
+                  className="mt-3 block rounded-full bg-frambuesa px-4 py-3 text-center text-white"
                 >
                   Pedir por WhatsApp
                 </a>

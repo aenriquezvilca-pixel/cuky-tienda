@@ -5,9 +5,16 @@ import Hero from "@/components/Hero";
 import Servicios from "@/components/Servicios";
 import CategoryFilter from "@/components/CategoryFilter";
 import ProductList from "@/components/ProductList";
+import ProductModal from "@/components/ProductModal";
 import CategoriasDestacadas from "@/components/CategoriasDestacadas";
+import Ofertas from "@/components/Ofertas";
+import Recomendados from "@/components/Recomendados";
+import LibroReclamaciones from "@/components/LibroReclamaciones";
 import Footer from "@/components/Footer";
 import { getCategorias, getProductos } from "@/services/api";
+
+// Cantidad de productos que se muestran antes de pulsar "Ver todos"
+const LIMITE_INICIAL = 8;
 
 const PASOS = [
   {
@@ -73,6 +80,15 @@ const CONTACTO = [
   },
 ];
 
+const ORDENES = {
+  recomendado: (a, b) =>
+    Number(b.destacado) - Number(a.destacado) || b.vendidos - a.vendidos || a.id - b.id,
+  precio_asc: (a, b) => Number(a.precio_final) - Number(b.precio_final),
+  precio_desc: (a, b) => Number(b.precio_final) - Number(a.precio_final),
+  descuento: (a, b) => b.descuento - a.descuento,
+  nombre: (a, b) => a.nombre.localeCompare(b.nombre, "es"),
+};
+
 export default function Home() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -80,6 +96,11 @@ export default function Home() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [orden, setOrden] = useState("recomendado");
+  const [soloOfertas, setSoloOfertas] = useState(false);
+  const [verTodos, setVerTodos] = useState(false);
+  const [seleccionado, setSeleccionado] = useState(null);
+  const [libroAbierto, setLibroAbierto] = useState(false);
 
   const cargarDatos = () => {
     setCargando(true);
@@ -99,24 +120,36 @@ export default function Home() {
     cargarDatos();
   }, []);
 
+  const elegirCategoria = (nombre) => {
+    setCategoriaActiva(nombre);
+    setVerTodos(false);
+  };
+
   // Las categorías vienen del backend; "Todos" se agrega al inicio
   const nombresCategorias = ["Todos", ...categorias.map((c) => c.nombre)];
 
-  const productosFiltrados = productos.filter(
-    (p) =>
-      (categoriaActiva === "Todos" || p.categoria_nombre === categoriaActiva) &&
-      p.nombre.toLowerCase().includes(busqueda.trim().toLowerCase())
-  );
+  const productosFiltrados = productos
+    .filter(
+      (p) =>
+        (categoriaActiva === "Todos" || p.categoria_nombre === categoriaActiva) &&
+        (!soloOfertas || p.descuento > 0) &&
+        p.nombre.toLowerCase().includes(busqueda.trim().toLowerCase())
+    )
+    .sort(ORDENES[orden]);
+
+  // Solo se muestran algunos; el botón "Ver todos" despliega el resto
+  const visibles = verTodos ? productosFiltrados : productosFiltrados.slice(0, LIMITE_INICIAL);
+  const ocultos = productosFiltrados.length - LIMITE_INICIAL;
 
   return (
     <div id="inicio" className="min-h-screen bg-crema font-sans text-cacao">
       <Header />
-      <Hero onElegir={setCategoriaActiva} />
+      <Hero onElegir={elegirCategoria} />
       <Servicios />
       <CategoriasDestacadas
         categorias={categorias}
         productos={productos}
-        onElegir={setCategoriaActiva}
+        onElegir={elegirCategoria}
       />
 
       {/* Catálogo */}
@@ -130,36 +163,82 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="mx-auto mb-8 max-w-md">
+        <div className="mx-auto mb-8 flex max-w-3xl flex-col gap-3 sm:flex-row">
           <input
             type="search"
             value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
+            onChange={(e) => {
+              setBusqueda(e.target.value);
+              setVerTodos(false);
+            }}
             placeholder="Buscar un postre..."
             aria-label="Buscar productos"
             className="w-full rounded-full border border-rosado bg-white px-6 py-3 text-sm shadow-sm outline-none transition placeholder:text-cacao/40 focus:border-frambuesa focus:ring-4 focus:ring-frambuesa/15"
           />
+          <select
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+            aria-label="Ordenar productos"
+            className="rounded-full border border-rosado bg-white px-5 py-3 text-sm shadow-sm outline-none focus:border-frambuesa"
+          >
+            <option value="recomendado">Recomendados</option>
+            <option value="precio_asc">Precio: menor a mayor</option>
+            <option value="precio_desc">Precio: mayor a menor</option>
+            <option value="descuento">Mayor descuento</option>
+            <option value="nombre">Nombre (A-Z)</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => {
+              setSoloOfertas((v) => !v);
+              setVerTodos(false);
+            }}
+            aria-pressed={soloOfertas}
+            className={`whitespace-nowrap rounded-full border px-5 py-3 text-sm font-bold shadow-sm transition ${
+              soloOfertas
+                ? "border-frambuesa bg-frambuesa text-white"
+                : "border-rosado bg-white text-cacao hover:border-frambuesa hover:text-frambuesa"
+            }`}
+          >
+            🔥 Solo ofertas
+          </button>
         </div>
 
         <div className="mb-10">
           <CategoryFilter
             categorias={nombresCategorias}
             seleccionada={categoriaActiva}
-            onSelect={setCategoriaActiva}
+            onSelect={elegirCategoria}
           />
         </div>
 
         <ProductList
-          productos={productosFiltrados}
+          productos={visibles}
           cargando={cargando}
           error={error}
           onReintentar={cargarDatos}
+          onVer={setSeleccionado}
         />
+
+        {!cargando && !error && ocultos > 0 && (
+          <div className="mt-10 text-center">
+            <button
+              type="button"
+              onClick={() => setVerTodos((v) => !v)}
+              className="rounded-full border-2 border-frambuesa px-10 py-3 text-sm font-bold uppercase tracking-widest text-frambuesa transition hover:bg-frambuesa hover:text-white"
+            >
+              {verTodos ? "Ver menos" : `Ver todos (${productosFiltrados.length})`}
+            </button>
+          </div>
+        )}
 
         <p className="mt-10 text-center text-xs text-cacao/50">
           Precios en soles. Las imágenes son referenciales y los precios incluyen decoración estándar.
         </p>
       </main>
+
+      <Ofertas productos={productos} onVer={setSeleccionado} />
+      <Recomendados onVer={setSeleccionado} />
 
       {/* Pedidos */}
       <section id="pedidos" className="scroll-mt-20 bg-white py-16">
@@ -320,7 +399,16 @@ export default function Home() {
         </div>
       </section>
 
-      <Footer />
+      <Footer onLibro={() => setLibroAbierto(true)} />
+
+      {seleccionado && (
+        <ProductModal
+          producto={seleccionado}
+          onCerrar={() => setSeleccionado(null)}
+          onCambiar={setSeleccionado}
+        />
+      )}
+      {libroAbierto && <LibroReclamaciones onCerrar={() => setLibroAbierto(false)} />}
     </div>
   );
 }

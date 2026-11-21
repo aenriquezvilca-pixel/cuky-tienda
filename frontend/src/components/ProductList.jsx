@@ -1,11 +1,25 @@
 import ProductCard from "./ProductCard";
 
-export default function ProductList({ productos, cargando, error, onReintentar }) {
+export default function ProductList({ productos, cargando, error, onReintentar, onVer }) {
   if (cargando) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-3xl bg-white py-16 text-cacao/70">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-rosado border-t-frambuesa" />
-        <p>Cargando productos...</p>
+      <div>
+        <div className="mb-6 flex flex-col items-center gap-3 text-cacao/70">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-rosado border-t-frambuesa" />
+          <p>Cargando productos...</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-rosado/80 bg-white">
+              <div className="aspect-square animate-pulse bg-rosado/60" />
+              <div className="space-y-2 p-4">
+                <div className="mx-auto h-3 w-1/3 animate-pulse rounded bg-rosado/70" />
+                <div className="mx-auto h-4 w-2/3 animate-pulse rounded bg-rosado/70" />
+                <div className="mx-auto h-6 w-1/2 animate-pulse rounded bg-rosado/70" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -13,7 +27,7 @@ export default function ProductList({ productos, cargando, error, onReintentar }
   if (error) {
     return (
       <div className="rounded-3xl border border-red-200 bg-red-50 py-12 text-center">
-        <p className="font-semibold text-red-600">{error}</p>
+        <p className="px-4 font-semibold text-red-600">{error}</p>
         <button
           type="button"
           onClick={onReintentar}
@@ -28,23 +42,15 @@ export default function ProductList({ productos, cargando, error, onReintentar }
   if (productos.length === 0) {
     return (
       <p className="rounded-3xl bg-white py-12 text-center text-cacao/60">
-        No hay productos en esta categoría por ahora.
+        No encontramos productos con esos filtros.
       </p>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
       {productos.map((p) => (
-        <ProductCard
-          key={p.id}
-          nombre={p.nombre}
-          descripcion={p.descripcion}
-          precio={p.precio}
-          imagen={p.imagen}
-          categoria={p.categoria_nombre}
-          cantidad={p.cantidad}
-        />
+        <ProductCard key={p.id} producto={p} onVer={onVer} />
       ))}
     </div>
   );
