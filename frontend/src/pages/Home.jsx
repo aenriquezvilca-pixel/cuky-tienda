@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CakeSlice, CalendarDays, ChefHat, Clock, Gift, Leaf, MapPin, MessageCircle, PartyPopper } from "lucide-react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
-import Servicios from "@/components/Servicios";
+import Destacados from "@/components/Destacados";
 import CategoryFilter from "@/components/CategoryFilter";
 import ProductList from "@/components/ProductList";
 import ProductModal from "@/components/ProductModal";
@@ -145,7 +145,7 @@ export default function Home() {
     <div id="inicio" className="min-h-screen bg-crema font-sans text-cacao">
       <Header />
       <Hero onElegir={elegirCategoria} />
-      <Servicios />
+      <Destacados productos={productos} onVer={setSeleccionado} />
       <CategoriasDestacadas
         categorias={categorias}
         productos={productos}
